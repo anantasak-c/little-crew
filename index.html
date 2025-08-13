@@ -27,6 +27,10 @@
             border-radius: 1.5rem;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
             padding: 2.5rem;
+            display: none; /* ซ่อนหน้าคำนวณเริ่มต้น */
+        }
+        .card.active {
+            display: block; /* แสดงหน้าคำนวณเมื่อถูกเรียก */
         }
         .time-input-label {
             color: #4b5563; /* Gray-600 */
@@ -52,11 +56,23 @@
             justify-content: space-between;
             align-items: center;
         }
+        /* สไตล์สำหรับหน้าแสดงผลลัพธ์ใหม่ */
+        .result-card {
+            display: none; /* ซ่อนหน้าผลลัพธ์เริ่มต้น */
+            background-color: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            padding: 2.5rem;
+        }
+        .result-card.active {
+            display: block; /* แสดงหน้าผลลัพธ์เมื่อถูกเรียก */
+        }
     </style>
 </head>
 <body>
     <div class="container mx-auto">
-        <div class="card">
+        <!-- หน้าคำนวณ -->
+        <div id="inputCard" class="card active">
             <!-- หัวข้อที่ปรับให้ใหญ่ขึ้นและมีอิโมจิ -->
             <div class="flex items-center justify-center gap-2 mb-4">
                 <span class="text-4xl">✈️</span>
@@ -82,14 +98,16 @@
             <div class="mb-4">
                 <label for="travelTime" class="block text-sm font-medium time-input-label mb-2">เวลาเดินทาง (ชั่วโมง)</label>
                 <select id="travelTime" class="time-input w-full p-3 rounded-lg border focus:ring-2 focus:ring-red-500 focus:outline-none transition-all duration-200">
-                    <option value="0.5">0.30 ชั่วโมง</option>
-                    <option value="1">1 ชั่วโมง</option>
-                    <option value="1.33">1 ชั่วโมง 20 นาที</option>
-                    <option value="1.5">1.30 ชั่วโมง</option>
-                    <option value="1.67">1 ชั่วโมง 40 นาที</option>
-                    <option value="2">2 ชั่วโมง</option>
-                    <option value="2.5">2.30 ชั่วโมง</option>
-                    <option value="3">3 ชั่วโมง</option>
+                    <option value="0.5">30 min</option>
+                    <option value="0.75">45 min</option>
+                    <option value="1">1 hr</option>
+                    <option value="1.25">1 hr 15 min</option>
+                    <option value="1.5">1 hr 30 min</option>
+                    <option value="1.75">1 hr 45 min</option>
+                    <option value="2">2 hr</option>
+                    <option value="2.25">2 hr 15 min</option>
+                    <option value="2.5">2 hr 30 min</option>
+                    <option value="2.75">2 hr 45 min</option>
                 </select>
             </div>
 
@@ -97,44 +115,46 @@
             <div class="mb-6">
                 <label for="prepTime" class="block text-sm font-medium time-input-label mb-2">เวลาเตรียมตัว (ชั่วโมง)</label>
                 <select id="prepTime" class="time-input w-full p-3 rounded-lg border focus:ring-2 focus:ring-red-500 focus:outline-none transition-all duration-200">
-                    <option value="0.5">0.30 ชั่วโมง</option>
-                    <option value="1">1 ชั่วโมง</option>
-                    <option value="1.33">1 ชั่วโมง 20 นาที</option>
-                    <option value="1.5">1.30 ชั่วโมง</option>
-                    <option value="1.67">1 ชั่วโมง 40 นาที</option>
-                    <option value="2" selected>2 ชั่วโมง</option>
-                    <option value="2.5">2.30 ชั่วโมง</option>
-                    <option value="3">3 ชั่วโมง</option>
+                    <option value="0.5">30 min</option>
+                    <option value="0.75">45 min</option>
+                    <option value="1">1 hr</option>
+                    <option value="1.25">1 hr 15 min</option>
+                    <option value="1.5">1 hr 30 min</option>
+                    <option value="1.75">1 hr 45 min</option>
+                    <option value="2" selected>2 hr</option>
+                    <option value="2.25">2 hr 15 min</option>
+                    <option value="2.5">2 hr 30 min</option>
+                    <option value="2.75">2 hr 45 min</option>
                 </select>
             </div>
 
             <!-- ปุ่มคำนวณ -->
             <button id="calculateBtn" class="calculate-button w-full p-4 rounded-full text-lg focus:outline-none focus:ring-4 focus:ring-red-300">คำนวณเวลา</button>
+        </div>
 
-            <!-- พื้นที่แสดงผลลัพธ์ -->
-            <div id="results" class="mt-8 transition-all duration-300 ease-in-out hidden">
-                <div class="bg-gray-50 border border-gray-200 rounded-xl p-6 space-y-4">
-                    <!-- เวลาบิน -->
-                    <div class="result-item">
-                        <span class="font-bold text-gray-800">เวลาบิน:</span>
-                        <span id="flightResult" class="font-bold text-xl text-red-600"></span>
-                    </div>
-
-                    <!-- เวลาที่ต้องออกจากบ้าน -->
-                    <div class="result-item">
-                        <span class="font-medium text-gray-700">ออกเดินทาง:</span>
-                        <span id="departureResult" class="text-lg text-gray-900"></span>
-                    </div>
-
-                    <!-- เวลาที่ต้องตื่น -->
-                    <div class="result-item">
-                        <span class="font-medium text-gray-700">ตื่นนอน:</span>
-                        <span id="wakeupResult" class="text-lg text-gray-900"></span>
-                    </div>
+        <!-- หน้าแสดงผลลัพธ์ -->
+        <div id="resultCard" class="result-card">
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-6 space-y-4">
+                <!-- เวลาบิน -->
+                <div class="flex flex-col items-start">
+                    <span class="font-bold text-gray-800">เวลาบิน:</span>
+                    <span id="flightResult" class="font-bold text-xl text-red-600 mt-1"></span>
                 </div>
-                <!-- พื้นที่แสดงแคปชั่นที่ปรับขนาดให้ใหญ่ขึ้น -->
-                <div id="captionDisplay" class="mt-6 text-center text-gray-700 italic text-xl"></div>
+
+                <!-- เวลาที่ต้องออกจากบ้าน -->
+                <div class="result-item">
+                    <span class="font-medium text-gray-700">ออกเดินทาง:</span>
+                    <span id="departureResult" class="text-lg text-gray-900"></span>
+                </div>
+
+                <!-- เวลาที่ต้องตื่น -->
+                <div class="result-item">
+                    <span class="font-medium text-gray-700">ตื่นนอน:</span>
+                    <span id="wakeupResult" class="text-lg text-gray-900"></span>
+                </div>
             </div>
+            <!-- พื้นที่แสดงแคปชั่น -->
+            <div id="captionDisplay" class="mt-6 text-center text-gray-700 italic text-xl"></div>
         </div>
     </div>
 
@@ -146,7 +166,8 @@
             const travelTimeInput = document.getElementById('travelTime');
             const prepTimeInput = document.getElementById('prepTime');
             const calculateBtn = document.getElementById('calculateBtn');
-            const resultsDiv = document.getElementById('results');
+            const inputCard = document.getElementById('inputCard');
+            const resultCard = document.getElementById('resultCard');
             const flightResult = document.getElementById('flightResult');
             const departureResult = document.getElementById('departureResult');
             const wakeupResult = document.getElementById('wakeupResult');
@@ -354,13 +375,13 @@
                     const randomIndex = Math.floor(Math.random() * captions.length);
                     captionDisplay.textContent = captions[randomIndex];
 
-                    // แสดงผลลัพธ์ถ้าซ่อนอยู่
-                    resultsDiv.classList.remove('hidden');
+                    // สลับการแสดงผลหน้าจอ
+                    inputCard.classList.remove('active');
+                    resultCard.classList.add('active');
 
                 } else {
                     // ซ่อนผลลัพธ์ถ้ายังไม่ได้เลือกเวลา
                     alert('กรุณาเลือกวันและเวลาบินก่อน!');
-                    resultsDiv.classList.add('hidden');
                 }
             });
         });
